@@ -46,5 +46,6 @@ int if_up(struct mnl_socket *nl, const char *ifname);
 int if_add_addr(struct mnl_socket *nl, const char *ifname, const char *ip,
                 uint8_t prefix);
 
-int do_ping(const struct node *from, const char *toip);
-int do_traceroute(const struct node *from, const char *toip);
+int ns_exec(const int ns, const char *argv[]);
+int do_ping(const int fd, const char *toip);
+int do_traceroute(const int fd, const char *toip);

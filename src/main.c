@@ -131,10 +131,11 @@ int main(void) {
     mnl_socket_close(nl);
     return -1;
   }
+
   mnl_socket_close(nl);
   ns_exit(f);
 
   // 3. exec testing programs
-  do_traceroute(&n, "10.0.2.1");
+  do_traceroute(n.fd, "10.0.2.1");
   return 0;
 }

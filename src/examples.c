@@ -6,52 +6,45 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-// hardcoded ping for checking availability
-// will be removed soon
-int do_ping(const struct node *from, const char *toip) {
-  pid_t p = fork();
-  if (p < 0) {
-    return -errno;
-  }
+int ns_exec(const int ns, const char *argv[]) {
+  if (!argv || !argv[0])
+    return -EINVAL;
 
-  if (p == 0) {
-    if (setns(from->fd, CLONE_NEWNET) < 0)
-      _exit(127);
-
-    execlp("ping", "ping", "-c", "3", toip, NULL);
-    _exit(127);
-  }
-
-  int st;
-  waitpid(p, &st, 0);
-  if (WIFEXITED(st) && WEXITSTATUS(st) == 0)
-    return 0;
-  return -1;
-}
-
-// hardcoded trcaeroute for testing
-int do_traceroute(const struct node *from, const char *toip) {
   pid_t p = fork();
   if (p < 0)
     return -errno;
 
   if (p == 0) {
-    if (setns(from->fd, CLONE_NEWNET) < 0)
-      _exit(127);
-
-    execlp("traceroute", "traceroute",
-           "-n",       // без DNS (в netns нет резолвера!)
-           "-I",       // ICMP вместо UDP (надёжнее через роутер)
-           "-m", "10", // max 10 hops
-           "-w", "1",  // таймаут 1 сек на hop
-           "-q", "1",  // 1 probe на hop (быстрее)
-           toip, NULL);
+    if (setns(ns, CLONE_NEWNET) < 0) {
+      perror("ns_exec: setns");
+      _exit(126);
+    }
+    execvp(argv[0], (char *const *)argv);
+    perror("ns_exec: execvp");
     _exit(127);
   }
 
   int st;
-  waitpid(p, &st, 0);
-  if (WIFEXITED(st) && WEXITSTATUS(st) == 0)
-    return 0;
-  return -1;
+  if (waitpid(p, &st, 0) < 0)
+    return -errno;
+
+  if (!WIFEXITED(st))
+    return -ECHILD;
+
+  int code = WEXITSTATUS(st);
+  if (code == 126)
+    return -EACCES; // setns fail
+  if (code == 127)
+    return -ENOENT; // exec fail
+  return code;
+}
+
+// hardcoded trcaeroute for testing
+int do_traceroute(const int fd, const char *toip) {
+  return ns_exec(fd, (const char *[]){"traceroute", "-n", "-I", "-m", "10",
+                                      "-w", "1", "-q", "1", toip, NULL});
+}
+
+int do_ping(const int fd, const char *toip) {
+  return ns_exec(fd, (const char *[]){"ping", "-c", "3", toip, NULL});
 }

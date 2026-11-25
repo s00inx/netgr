@@ -130,8 +130,6 @@ int node_apply(struct node *n) {
 // create a pair of veth-ifaces named "in_name" and "out_name"
 int veth_pair(struct mnl_socket *nl, const char *in_name,
               const char *out_name) {
-  // this low lwvwl funcs do not check strings bc it should be done by high
-  // level funcs
   if (strlen(in_name) >= IFNAMSIZ || strlen(out_name) >= IFNAMSIZ) {
     return -EINVAL;
   }
