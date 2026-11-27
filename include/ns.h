@@ -1,11 +1,15 @@
 #pragma once
 
+// shared header for all .c , will be splitted for internal/external soon
+
 #include <net/if.h>
 #include <stdint.h>
 
 #include <libmnl/libmnl.h>
 
 #define NODE_NAMESIZE 64
+#define MNL_SKBUFSZ                                                            \
+  2048 // MNL_SKBUFSZ is macro so i can't use vla for stack arrays
 
 // node for net graph
 struct node {
@@ -49,3 +53,10 @@ int if_add_addr(struct mnl_socket *nl, const char *ifname, const char *ip,
 int ns_exec(const int ns, const char *argv[]);
 int do_ping(const int fd, const char *toip);
 int do_traceroute(const int fd, const char *toip);
+
+int mnl_ack(struct mnl_socket *nl, struct nlmsghdr *nlh, char *buf,
+            const size_t buflen);
+struct ifinfomsg *enterifi(struct nlmsghdr *nlh);
+
+extern uint32_t seq;
+uint32_t next_seq();
