@@ -13,13 +13,13 @@
 #include <unistd.h>
 
 // set ip forward from dest ns
-int ns_ip_fwd(void) {
-  int fd = open("/proc/sys/net/ipv4/ip_forward", O_WRONLY);
+int sysctl_write(const char *to, const char *buf) {
+  int fd = open(to, O_WRONLY);
   if (fd < 0) {
     return -errno;
   }
 
-  if (write(fd, "1", 1) != 1) {
+  if (write(fd, buf, 1) != 1) {
     if (close(fd) < 0) {
       return -errno;
     };

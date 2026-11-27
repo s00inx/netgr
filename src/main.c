@@ -102,7 +102,7 @@ int main(void) {
     return -1;
   }
 
-  if (ns_ip_fwd() < 0) {
+  if (sysctl_write("/proc/sys/net/ipv4/ip_forward", "1") < 0) {
     puts("set ip forward");
     return -1;
   };

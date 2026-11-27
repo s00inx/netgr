@@ -1,6 +1,6 @@
 #pragma once
 
-// shared header for all .c , will be splitted for internal/external soon
+// shared header for all .c , will be splitted into internal/external soon
 
 #include <net/if.h>
 #include <stdint.h>
@@ -39,7 +39,7 @@ int node_apply(struct node *n);
 
 int ns_enter(int to);
 int ns_exit(int to);
-int ns_ip_fwd(void);
+int sysctl_write(const char *to, const char *buf);
 int ns_add_default_route(struct mnl_socket *nl, const char *oif_name,
                          const char *gw_ip);
 
